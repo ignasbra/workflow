@@ -1,0 +1,53 @@
+<Window x:Class="PrReviewHelper.Views.JiraSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Jira Settings" Height="380" Width="560"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="Segoe UI" FontSize="13">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="140"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Provide your Atlassian email and an API token." Margin="0,0,0,12"/>
+        <TextBlock Grid.Row="1" Grid.ColumnSpan="2"
+                   Text="Create a token at https://id.atlassian.com/manage-profile/security/api-tokens"
+                   Foreground="#1f6feb" Margin="0,0,0,16"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Host" VerticalAlignment="Center"/>
+        <TextBox  Grid.Row="2" Grid.Column="1" x:Name="HostBox" Margin="0,0,0,8" Padding="4"/>
+
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Email" VerticalAlignment="Center"/>
+        <TextBox  Grid.Row="3" Grid.Column="1" x:Name="EmailBox" Margin="0,0,0,8" Padding="4"/>
+
+        <TextBlock Grid.Row="4" Grid.Column="0" Text="API Token" VerticalAlignment="Center"/>
+        <PasswordBox Grid.Row="4" Grid.Column="1" x:Name="TokenBox" Margin="0,0,0,8" Padding="4"/>
+
+        <TextBlock Grid.Row="5" Grid.Column="0" Text="Project key" VerticalAlignment="Center"/>
+        <TextBox  Grid.Row="5" Grid.Column="1" x:Name="ProjectBox" Margin="0,0,0,8" Padding="4"/>
+
+        <TextBlock Grid.Row="6" Grid.Column="0" Text="Team field id" VerticalAlignment="Center"/>
+        <TextBox  Grid.Row="6" Grid.Column="1" x:Name="TeamFieldBox" Margin="0,0,0,8" Padding="4"/>
+
+        <TextBlock Grid.Row="7" Grid.Column="0" Text="Team value id" VerticalAlignment="Center"/>
+        <TextBox  Grid.Row="7" Grid.Column="1" x:Name="TeamIdBox" Margin="0,0,0,8" Padding="4"/>
+
+        <StackPanel Grid.Row="9" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Cancel" MinWidth="80" Padding="10,4" Margin="0,0,8,0" Click="Cancel_Click"/>
+            <Button Content="Save"   MinWidth="80" Padding="10,4" Click="Save_Click" IsDefault="True"/>
+        </StackPanel>
+    </Grid>
+</Window>
