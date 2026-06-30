@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace PrReviewHelper.Services;
 
@@ -7,6 +8,14 @@ public class PrReviewSettings
 {
     public string BackendRepoPath { get; set; } = @"C:\git\github\product-predesign-backend";
     public string FrontendRepoPath { get; set; } = @"C:\git\github\site-feasibility-fe";
+
+    public string AiTool { get; set; } = "Claude";
+
+    [JsonIgnore]
+    public string AiExecutable => AiTool == "Antigravity CLI" ? "agy" : "claude";
+
+    [JsonIgnore]
+    public string AiName => AiTool == "Antigravity CLI" ? "Antigravity" : "Claude";
 
     private static string FilePath
     {

@@ -11,7 +11,7 @@ namespace PrReviewHelper.ViewModels;
 public class PrViewModel : INotifyPropertyChanged
 {
     private readonly GitHubService _gh = new();
-    private readonly ClaudeService _claude = new();
+    private readonly AiService _ai = new();
     private readonly PrReviewSettings _settings = PrReviewSettings.Load();
 
     public ObservableCollection<CommentViewModel> Comments { get; } = new();
@@ -116,14 +116,15 @@ public class PrViewModel : INotifyPropertyChanged
     private async Task RegenerateAsync(CommentViewModel? vm)
     {
         if (vm is null) return;
+        var settings = PrReviewSettings.Load();
         Application.Current.Dispatcher.Invoke(() =>
         {
             vm.State = CommentState.Generating;
-            Status = $"Generating reply for {vm.Header}…";
+            Status = $"Generating reply for {vm.Header} using {settings.AiName}…";
         });
         try
         {
-            var reply = await _claude.SuggestReplyAsync(vm.Comment);
+            var reply = await _ai.SuggestReplyAsync(vm.Comment);
             Application.Current.Dispatcher.Invoke(() =>
             {
                 vm.Reply = reply;
@@ -188,17 +189,18 @@ public class PrViewModel : INotifyPropertyChanged
     private async Task ImplementAsync(CommentViewModel? vm)
     {
         if (vm is null) return;
+        var settings = PrReviewSettings.Load();
         var confirm = MessageBox.Show(
-            $"Let Claude implement this comment's request in {RepoPath}?\n\nThis modifies files on disk (no git commit, no staging).\n\nThread: {vm.Header}",
+            $"Let {settings.AiName} implement this comment's request in {RepoPath}?\n\nThis modifies files on disk (no git commit, no staging).\n\nThread: {vm.Header}",
             "Confirm Implement", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
         if (confirm != MessageBoxResult.OK) return;
 
         var prior = vm.State;
         vm.State = CommentState.Implementing;
-        Status = $"Implementing change for {vm.Header}…";
+        Status = $"Implementing change for {vm.Header} using {settings.AiName}…";
         try
         {
-            var result = await _claude.ImplementCommentAsync(vm.Comment, RepoPath);
+            var result = await _ai.ImplementCommentAsync(vm.Comment, RepoPath);
             if (result.ExitCode != 0)
             {
                 vm.State = CommentState.Error;
@@ -209,7 +211,7 @@ public class PrViewModel : INotifyPropertyChanged
             if (summary.StartsWith("BLOCKED:", StringComparison.Ordinal))
             {
                 vm.State = prior;
-                MessageBox.Show(summary, "Claude needs more context", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(summary, $"{settings.AiName} needs more context", MessageBoxButton.OK, MessageBoxImage.Information);
                 Status = "Implementation blocked — see message.";
                 return;
             }

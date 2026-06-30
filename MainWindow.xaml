@@ -9,7 +9,23 @@
         TextOptions.TextFormattingMode="Ideal"
         TextOptions.TextRenderingMode="ClearType">
 
-    <TabControl Margin="6">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="{StaticResource Brush.BgElev}" BorderBrush="{StaticResource Brush.Border}" BorderThickness="0,0,0,1" Padding="12,8">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="AI Tool:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{StaticResource Brush.TextMuted}" FontWeight="SemiBold"/>
+                    <ComboBox Width="150" SelectedItem="{Binding SelectedAiTool, Mode=TwoWay}" ItemsSource="{Binding AiTools}" Padding="4"/>
+                </StackPanel>
+                <TextBlock Text="PR REVIEW HELPER" VerticalAlignment="Center" FontSize="14" FontWeight="Bold" Foreground="{StaticResource Brush.Accent}"/>
+            </DockPanel>
+        </Border>
+
+        <TabControl Grid.Row="1" Margin="6">
         <!-- ============================== CREATE BRANCH TAB ============================== -->
         <TabItem Header="Create branch" DataContext="{Binding CreateBranch}">
             <DockPanel>
@@ -206,7 +222,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Text="Brief / extra context for claude (optional)" Margin="0,0,0,2"/>
+                    <TextBlock Grid.Row="0" Text="Brief / extra context for AI (optional)" Margin="0,0,0,2"/>
                     <TextBox Grid.Row="1" Text="{Binding Brief, UpdateSourceTrigger=PropertyChanged}"
                              AcceptsReturn="True" TextWrapping="Wrap"
                              VerticalScrollBarVisibility="Auto" Padding="6"/>
@@ -392,7 +408,7 @@
                               Command="{Binding BrowseDorCommand}" Margin="6,0,0,6"/>
 
                     <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3"
-                               Text="Brief / context for claude (the more, the better)" Margin="0,6,0,2"/>
+                               Text="Brief / context for AI (the more, the better)" Margin="0,6,0,2"/>
                     <TextBox Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3"
                              Text="{Binding Brief, UpdateSourceTrigger=PropertyChanged}"
                              AcceptsReturn="True" TextWrapping="Wrap"
@@ -416,4 +432,5 @@
             </DockPanel>
         </TabItem>
     </TabControl>
+    </Grid>
 </Window>

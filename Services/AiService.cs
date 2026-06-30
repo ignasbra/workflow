@@ -3,25 +3,27 @@ using PrReviewHelper.Models;
 
 namespace PrReviewHelper.Services;
 
-public class ClaudeService
+public class AiService
 {
     public async Task<string> SuggestReplyAsync(PrComment c, CancellationToken ct = default)
     {
+        var settings = PrReviewSettings.Load();
         var prompt = BuildPrompt(c);
         // Pass the prompt via stdin, not as a CLI arg — large prompts exceed the Windows
         // command-line length limit and fail CreateProcess with "filename or extension too long".
-        var r = await ProcessRunner.RunAsync("claude", ["-p"], stdin: prompt, ct: ct);
+        var r = await ProcessRunner.RunAsync(settings.AiExecutable, ["-p"], stdin: prompt, ct: ct);
         if (r.ExitCode != 0)
-            return $"[claude error: {r.StdErr.Trim()}]";
+            return $"[{settings.AiName.ToLower()} error: {r.StdErr.Trim()}]";
         return r.StdOut.Trim();
     }
 
     public async Task<ProcessResult> ImplementCommentAsync(PrComment c, string repoPath, CancellationToken ct = default)
     {
+        var settings = PrReviewSettings.Load();
         var prompt = BuildImplementPrompt(c);
         // Prompt goes on stdin (see SuggestReplyAsync) to avoid the command-line length limit.
         return await ProcessRunner.RunAsync(
-            "claude",
+            settings.AiExecutable,
             ["-p", "--dangerously-skip-permissions"],
             workingDirectory: repoPath,
             stdin: prompt,

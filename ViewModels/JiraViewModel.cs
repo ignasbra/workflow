@@ -84,14 +84,15 @@ public class JiraViewModel : INotifyPropertyChanged
             Status = "Reading DoR template…";
             var dor = await File.ReadAllTextAsync(DorTemplatePath);
 
-            Status = "Generating description via claude…";
+            var settings = PrReviewSettings.Load();
+            Status = $"Generating description via {settings.AiName}…";
             var prompt = BuildPrompt(Title, Brief, dor, SelectedIssueType);
             // Pass the prompt on stdin, not as a CLI arg, to avoid the Windows command-line
             // length limit ("filename or extension too long").
-            var r = await ProcessRunner.RunAsync("claude", ["-p"], stdin: prompt);
+            var r = await ProcessRunner.RunAsync(settings.AiExecutable, ["-p"], stdin: prompt);
             if (r.ExitCode != 0)
             {
-                Status = $"claude failed: {r.StdErr.Trim()}";
+                Status = $"{settings.AiName} failed: {r.StdErr.Trim()}";
                 return;
             }
             Description = r.StdOut.Trim();

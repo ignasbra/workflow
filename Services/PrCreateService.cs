@@ -61,7 +61,7 @@ public class PrCreateService
         var titleMatch = Regex.Match(raw, @"<<<TITLE>>>\s*\n(.*?)\n\s*<<<DESCRIPTION>>>", RegexOptions.Singleline);
         var bodyMatch = Regex.Match(raw, @"<<<DESCRIPTION>>>\s*\n(.*?)(?:\n\s*<<<END>>>|$)", RegexOptions.Singleline);
         if (!titleMatch.Success || !bodyMatch.Success)
-            throw new InvalidOperationException("Could not parse claude output. Raw:\n" + raw);
+            throw new InvalidOperationException("Could not parse AI output. Raw:\n" + raw);
         return new GeneratedPr(titleMatch.Groups[1].Value.Trim(), bodyMatch.Groups[1].Value.Trim());
     }
 }

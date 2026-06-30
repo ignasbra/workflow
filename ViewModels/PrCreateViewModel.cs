@@ -137,14 +137,15 @@ public class PrCreateViewModel : INotifyPropertyChanged
             var diffStat = await _svc.GetDiffStatAsync(RepoPath, BaseBranch);
             var diff = await _svc.GetDiffAsync(RepoPath, BaseBranch, maxBytes: 30_000);
 
-            Status = "Generating title + description via claude…";
+            var settings = PrReviewSettings.Load();
+            Status = $"Generating title + description via {settings.AiName}…";
             var prompt = BuildPrompt(branch, BaseBranch, commits, diffStat, diff, template, Brief);
             // Prompt embeds the diff — pass it on stdin, not as a CLI arg, to avoid the
             // Windows command-line length limit ("filename or extension too long").
-            var r = await ProcessRunner.RunAsync("claude", ["-p"], stdin: prompt);
+            var r = await ProcessRunner.RunAsync(settings.AiExecutable, ["-p"], stdin: prompt);
             if (r.ExitCode != 0)
             {
-                Status = $"claude failed: {r.StdErr.Trim()}";
+                Status = $"{settings.AiName} failed: {r.StdErr.Trim()}";
                 return;
             }
             var parsed = _svc.ParseGenerated(r.StdOut);
