@@ -13,7 +13,7 @@ namespace PrReviewHelper.ViewModels;
 
 public class CreateBranchViewModel : INotifyPropertyChanged
 {
-    private const int MaxBranchLength = 40;
+    private const int MaxBranchLength = 30;
     private const string BaseBranch = "main";
 
     private readonly GitBranchService _git = new();
