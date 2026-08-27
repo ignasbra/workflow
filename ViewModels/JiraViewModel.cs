@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Input;
 using Microsoft.Win32;
 using PrReviewHelper.Services;
 
@@ -24,12 +25,14 @@ public class JiraViewModel : INotifyPropertyChanged
             _ => !string.IsNullOrWhiteSpace(Title) && !string.IsNullOrWhiteSpace(Description));
         SettingsCommand = new RelayCommand(_ => OpenSettings());
         OpenTicketCommand = new RelayCommand(_ => OpenTicket(), _ => !string.IsNullOrWhiteSpace(CreatedUrl));
+
+        WarnIfTemplateMissing();
     }
 
     public List<string> IssueTypes { get; } = new() { "Story", "Bug", "Task", "Spike" };
 
     private string _title = "";
-    public string Title { get => _title; set { _title = value; OnChanged(); } }
+    public string Title { get => _title; set { _title = value; OnChanged(); CommandManager.InvalidateRequerySuggested(); } }
 
     private string _brief = "";
     public string Brief { get => _brief; set { _brief = value; OnChanged(); } }
@@ -38,14 +41,22 @@ public class JiraViewModel : INotifyPropertyChanged
     public string DorTemplatePath
     {
         get => _dorTemplatePath;
-        set { _dorTemplatePath = value; OnChanged(); _settings.DorTemplatePath = value; TrySaveSettings(); }
+        set
+        {
+            _dorTemplatePath = value;
+            OnChanged();
+            _settings.DorTemplatePath = value;
+            TrySaveSettings();
+            WarnIfTemplateMissing();
+            CommandManager.InvalidateRequerySuggested();
+        }
     }
 
     private string _selectedIssueType = "Story";
     public string SelectedIssueType { get => _selectedIssueType; set { _selectedIssueType = value; OnChanged(); } }
 
     private string _description = "";
-    public string Description { get => _description; set { _description = value; OnChanged(); } }
+    public string Description { get => _description; set { _description = value; OnChanged(); CommandManager.InvalidateRequerySuggested(); } }
 
     private string _status = "Idle";
     public string Status { get => _status; set { _status = value; OnChanged(); } }
@@ -149,6 +160,15 @@ public class JiraViewModel : INotifyPropertyChanged
     }
 
     private void TrySaveSettings() { try { _settings.Save(); } catch { /* ignore */ } }
+
+    /// <summary>Generate is dead without a readable DoR template — say why instead of sitting on "Idle".</summary>
+    private void WarnIfTemplateMissing()
+    {
+        if (string.IsNullOrWhiteSpace(DorTemplatePath))
+            Status = "No DoR template set — pick one to enable Generate.";
+        else if (!File.Exists(DorTemplatePath))
+            Status = $"DoR template not found: {DorTemplatePath} — pick another to enable Generate.";
+    }
 
     private static string BuildPrompt(string title, string brief, string dor, string issueType)
     {

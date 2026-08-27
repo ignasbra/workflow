@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Input;
 using Microsoft.Win32;
 using PrReviewHelper.Services;
 
@@ -46,6 +47,7 @@ public class PrCreateViewModel : INotifyPropertyChanged
             _ => !string.IsNullOrWhiteSpace(Title) && !string.IsNullOrWhiteSpace(Body) && !string.IsNullOrWhiteSpace(RepoPath));
         OpenPrCommand = new RelayCommand(_ => OpenPr(), _ => !string.IsNullOrWhiteSpace(CreatedUrl));
 
+        WarnIfTemplateMissing();
         _ = TrySeedTitleFromBranchAsync();
     }
 
@@ -58,6 +60,7 @@ public class PrCreateViewModel : INotifyPropertyChanged
             if (_repoPath == value) return;
             _repoPath = value;
             OnChanged();
+            CommandManager.InvalidateRequerySuggested();
             _ = TrySeedTitleFromBranchAsync();
         }
     }
@@ -66,7 +69,15 @@ public class PrCreateViewModel : INotifyPropertyChanged
     public string TemplatePath
     {
         get => _templatePath;
-        set { _templatePath = value; OnChanged(); _settings.TemplatePath = value; TrySaveSettings(); }
+        set
+        {
+            _templatePath = value;
+            OnChanged();
+            _settings.TemplatePath = value;
+            TrySaveSettings();
+            WarnIfTemplateMissing();
+            CommandManager.InvalidateRequerySuggested();
+        }
     }
 
     private string _baseBranch;
@@ -80,10 +91,10 @@ public class PrCreateViewModel : INotifyPropertyChanged
     public string Brief { get => _brief; set { _brief = value; OnChanged(); } }
 
     private string _title = "";
-    public string Title { get => _title; set { _title = value; OnChanged(); } }
+    public string Title { get => _title; set { _title = value; OnChanged(); CommandManager.InvalidateRequerySuggested(); } }
 
     private string _body = "";
-    public string Body { get => _body; set { _body = value; OnChanged(); } }
+    public string Body { get => _body; set { _body = value; OnChanged(); CommandManager.InvalidateRequerySuggested(); } }
 
     private string _status = "Idle";
     public string Status { get => _status; set { _status = value; OnChanged(); } }
@@ -187,6 +198,19 @@ public class PrCreateViewModel : INotifyPropertyChanged
     }
 
     private void TrySaveSettings() { try { _settings.Save(); } catch { /* ignore */ } }
+
+    /// <summary>
+    /// Generate needs a readable template file, and Create PR needs the title/body Generate produces.
+    /// A template that was moved or deleted therefore leaves both buttons dead — say why instead of
+    /// sitting on "Idle".
+    /// </summary>
+    private void WarnIfTemplateMissing()
+    {
+        if (string.IsNullOrWhiteSpace(TemplatePath))
+            Status = "No PR template set — pick one to enable Generate.";
+        else if (!File.Exists(TemplatePath))
+            Status = $"PR template not found: {TemplatePath} — pick another to enable Generate.";
+    }
 
     private static string BuildPrompt(
         string branch, string baseBranch, string commits, string diffStat, string diff, string template, string brief)

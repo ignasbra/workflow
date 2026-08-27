@@ -245,7 +245,9 @@
                              VerticalScrollBarVisibility="Auto" Padding="6"/>
 
                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,8">
-                        <Button Content="Generate" Command="{Binding GenerateCommand}" Style="{StaticResource SuccessButton}"/>
+                        <Button Content="Generate" Command="{Binding GenerateCommand}" Style="{StaticResource SuccessButton}"
+                                ToolTipService.ShowOnDisabled="True"
+                                ToolTip="Needs a repo path and a PR template file that exists on disk."/>
                     </StackPanel>
 
                     <TextBlock Grid.Row="3" Text="Title (editable)" FontWeight="SemiBold" Margin="0,4,0,2"/>
@@ -259,7 +261,9 @@
                     </GroupBox>
 
                     <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-                        <Button Content="Create PR" Command="{Binding CreateCommand}" Style="{StaticResource PrimaryButton}"/>
+                        <Button Content="Create PR" Command="{Binding CreateCommand}" Style="{StaticResource PrimaryButton}"
+                                ToolTipService.ShowOnDisabled="True"
+                                ToolTip="Needs a repo path plus a non-empty title and description — run Generate or fill them in by hand."/>
                     </StackPanel>
                 </Grid>
             </DockPanel>
@@ -432,7 +436,9 @@
                              VerticalScrollBarVisibility="Auto" Padding="6"/>
 
                     <StackPanel Grid.Row="5" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,4">
-                        <Button Content="Generate" Command="{Binding GenerateCommand}" Style="{StaticResource SuccessButton}"/>
+                        <Button Content="Generate" Command="{Binding GenerateCommand}" Style="{StaticResource SuccessButton}"
+                                ToolTipService.ShowOnDisabled="True"
+                                ToolTip="Needs a title and a DoR template file that exists on disk."/>
                     </StackPanel>
 
                     <GroupBox Grid.Row="6" Grid.ColumnSpan="3" Header="Generated description (editable)">
@@ -443,7 +449,9 @@
                     </GroupBox>
 
                     <StackPanel Grid.Row="7" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-                        <Button Content="Create ticket" Command="{Binding CreateCommand}" Style="{StaticResource PrimaryButton}"/>
+                        <Button Content="Create ticket" Command="{Binding CreateCommand}" Style="{StaticResource PrimaryButton}"
+                                ToolTipService.ShowOnDisabled="True"
+                                ToolTip="Needs a non-empty title and description — run Generate or fill them in by hand."/>
                     </StackPanel>
                 </Grid>
             </DockPanel>
