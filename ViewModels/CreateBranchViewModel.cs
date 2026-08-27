@@ -47,6 +47,9 @@ public class CreateBranchViewModel : INotifyPropertyChanged
             _ => !string.IsNullOrWhiteSpace(RepoPath) && Directory.Exists(RepoPath) && !string.IsNullOrWhiteSpace(Ticket));
         StashCommand = new AsyncRelayCommand(_ => StashAsync(), _ => HasRepo);
         StashPopCommand = new AsyncRelayCommand(_ => StashPopAsync(), _ => HasRepo);
+        StageCommand = new AsyncRelayCommand(_ => StageAsync(), _ => HasRepo);
+        CommitCommand = new AsyncRelayCommand(_ => CommitAsync(), _ => HasRepo && !string.IsNullOrWhiteSpace(CommitMessage));
+        PushCommand = new AsyncRelayCommand(_ => PushAsync(), _ => HasRepo);
         RefreshIssuesCommand = new AsyncRelayCommand(_ => RefreshIssuesAsync());
 
         _ = RefreshIssuesAsync();
@@ -83,7 +86,7 @@ public class CreateBranchViewModel : INotifyPropertyChanged
     public string RepoPath
     {
         get => _repoPath;
-        set { _repoPath = value; OnChanged(); CommandManager.InvalidateRequerySuggested(); }
+        set { _repoPath = value; OnChanged(); CommandManager.InvalidateRequerySuggested(); _ = RefreshCurrentTicketAsync(); }
     }
 
     private string _ticket = "";
@@ -96,6 +99,18 @@ public class CreateBranchViewModel : INotifyPropertyChanged
     private string _status = "Idle";
     public string Status { get => _status; set { _status = value; OnChanged(); } }
 
+    private string _commitMessage = "";
+    public string CommitMessage
+    {
+        get => _commitMessage;
+        set { _commitMessage = value; OnChanged(); OnChanged(nameof(CommitMessagePreview)); CommandManager.InvalidateRequerySuggested(); }
+    }
+
+    private string _currentTicketKey = "";
+
+    /// <summary>Full commit message that will be sent to git — ticket prefix comes from the current branch name.</summary>
+    public string CommitMessagePreview => BuildFullCommitMessage(CommitMessage);
+
     /// <summary>Best-effort local preview built only from the ticket key — real summary comes from Jira at Create time.</summary>
     public string PreviewBranchName => string.IsNullOrWhiteSpace(Ticket) ? "" : $"feat/{NormalizeKey(Ticket)}-…";
 
@@ -107,6 +122,9 @@ public class CreateBranchViewModel : INotifyPropertyChanged
     public AsyncRelayCommand CreateCommand { get; }
     public AsyncRelayCommand StashCommand { get; }
     public AsyncRelayCommand StashPopCommand { get; }
+    public AsyncRelayCommand StageCommand { get; }
+    public AsyncRelayCommand CommitCommand { get; }
+    public AsyncRelayCommand PushCommand { get; }
 
     private async Task StashAsync()
     {
@@ -134,6 +152,81 @@ public class CreateBranchViewModel : INotifyPropertyChanged
         {
             Status = $"Error: {ex.Message}";
         }
+    }
+
+    private async Task StageAsync()
+    {
+        try
+        {
+            Status = "Staging changes…";
+            await _git.StageAllAsync(RepoPath);
+            Status = "Staged changes.";
+        }
+        catch (Exception ex)
+        {
+            Status = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task CommitAsync()
+    {
+        try
+        {
+            await RefreshCurrentTicketAsync();
+            var message = BuildFullCommitMessage(CommitMessage);
+            Status = "Committing…";
+            await _git.CommitAsync(RepoPath, message);
+            Status = $"Committed: {message}";
+            CommitMessage = "";
+        }
+        catch (Exception ex)
+        {
+            Status = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task PushAsync()
+    {
+        try
+        {
+            Status = "Pushing…";
+            await _git.PushAsync(RepoPath);
+            Status = "Pushed.";
+        }
+        catch (Exception ex)
+        {
+            Status = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task RefreshCurrentTicketAsync()
+    {
+        if (!HasRepo)
+        {
+            _currentTicketKey = "";
+            OnChanged(nameof(CommitMessagePreview));
+            return;
+        }
+        try
+        {
+            var branch = await _git.GetCurrentBranchAsync(RepoPath);
+            _currentTicketKey = ExtractTicketKey(branch) ?? "";
+        }
+        catch
+        {
+            _currentTicketKey = "";
+        }
+        OnChanged(nameof(CommitMessagePreview));
+    }
+
+    private string BuildFullCommitMessage(string body)
+        => string.IsNullOrEmpty(_currentTicketKey) ? body : $"{_currentTicketKey}: {body}";
+
+    /// <summary>Pulls the first '(PROJECT)-(number)' token out of a branch name, e.g. 'feat/CLOUD-331-title' -&gt; 'CLOUD-331'.</summary>
+    private static string? ExtractTicketKey(string branchName)
+    {
+        var m = Regex.Match(branchName, @"[A-Za-z]+-\d+");
+        return m.Success ? m.Value.ToUpperInvariant() : null;
     }
 
     private async Task CreateAsync()
@@ -174,6 +267,7 @@ public class CreateBranchViewModel : INotifyPropertyChanged
 
             Status = $"Creating {branchName}…";
             await _git.CreateBranchAsync(RepoPath, branchName);
+            await RefreshCurrentTicketAsync();
 
             Status = $"On {branchName}.";
         }

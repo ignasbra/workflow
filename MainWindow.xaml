@@ -46,6 +46,8 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*" MinHeight="200"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Repo" VerticalAlignment="Center" Margin="0,0,0,6"/>
@@ -153,12 +155,27 @@
                         </ListView>
                     </Border>
 
-                    <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3"
+                    <DockPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,8,0,0">
+                        <TextBlock DockPanel.Dock="Left" Text="Message" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBox Text="{Binding CommitMessage, UpdateSourceTrigger=PropertyChanged}" Padding="4" VerticalAlignment="Center"
+                                 ToolTip="Ticket prefix (e.g. CLOUD-123) is added automatically from the current branch name."/>
+                    </DockPanel>
+
+                    <TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding CommitMessagePreview}"
+                               FontFamily="Consolas" Foreground="{StaticResource Brush.TextMuted}" Margin="0,4,0,0"/>
+
+                    <StackPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3"
                                 Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
                         <Button Content="Stash" Command="{Binding StashCommand}"
                                 ToolTip="git stash push --include-untracked"/>
                         <Button Content="Pop stash" Command="{Binding StashPopCommand}" Margin="6,0,0,0"
                                 ToolTip="git stash pop"/>
+                        <Button Content="Stage" Command="{Binding StageCommand}" Margin="6,0,0,0"
+                                ToolTip="git add -A"/>
+                        <Button Content="Commit" Command="{Binding CommitCommand}" Margin="6,0,0,0"
+                                ToolTip="git commit -m &quot;message&quot;"/>
+                        <Button Content="Push" Command="{Binding PushCommand}" Margin="6,0,0,0"
+                                ToolTip="git push -u origin HEAD"/>
                         <Button Content="Create branch" Command="{Binding CreateCommand}" Style="{StaticResource PrimaryButton}" Margin="6,0,0,0"/>
                     </StackPanel>
                 </Grid>

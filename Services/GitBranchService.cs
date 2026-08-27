@@ -9,6 +9,13 @@ public class GitBranchService
         return string.IsNullOrWhiteSpace(r.StdOut);
     }
 
+    public async Task<string> GetCurrentBranchAsync(string repoPath, CancellationToken ct = default)
+    {
+        var r = await ProcessRunner.RunAsync("git", ["rev-parse", "--abbrev-ref", "HEAD"], repoPath, ct: ct);
+        if (r.ExitCode != 0) throw new InvalidOperationException($"git rev-parse failed: {r.StdErr.Trim()}");
+        return r.StdOut.Trim();
+    }
+
     public async Task<bool> LocalBranchExistsAsync(string repoPath, string name, CancellationToken ct = default)
     {
         var r = await ProcessRunner.RunAsync("git", ["rev-parse", "--verify", "--quiet", $"refs/heads/{name}"], repoPath, ct: ct);
@@ -52,5 +59,24 @@ public class GitBranchService
     {
         var r = await ProcessRunner.RunAsync("git", ["stash", "pop"], repoPath, ct: ct);
         if (r.ExitCode != 0) throw new InvalidOperationException($"git stash pop failed: {r.StdErr.Trim()}");
+    }
+
+    public async Task StageAllAsync(string repoPath, CancellationToken ct = default)
+    {
+        var r = await ProcessRunner.RunAsync("git", ["add", "-A"], repoPath, ct: ct);
+        if (r.ExitCode != 0) throw new InvalidOperationException($"git add failed: {r.StdErr.Trim()}");
+    }
+
+    public async Task CommitAsync(string repoPath, string message, CancellationToken ct = default)
+    {
+        var r = await ProcessRunner.RunAsync("git", ["commit", "-m", message], repoPath, ct: ct);
+        if (r.ExitCode != 0) throw new InvalidOperationException($"git commit failed: {r.StdErr.Trim()}");
+    }
+
+    /// <summary>Pushes the current branch, setting the upstream if it isn't tracking one yet.</summary>
+    public async Task PushAsync(string repoPath, CancellationToken ct = default)
+    {
+        var r = await ProcessRunner.RunAsync("git", ["push", "-u", "origin", "HEAD"], repoPath, ct: ct);
+        if (r.ExitCode != 0) throw new InvalidOperationException($"git push failed: {r.StdErr.Trim()}");
     }
 }
